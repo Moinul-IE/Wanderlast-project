@@ -1,8 +1,16 @@
 const fs = require("fs");
 const path = require("path");
 console.log("Current directory:", __dirname);
-console.log("Files in root:", fs.readdirSync(__dirname));
-console.log("Files in routers folder:", fs.existsSync(path.join(__dirname, "routers")) ? fs.readdirSync(path.join(__dirname, "routers")) : "Routers folder missing");
+try {
+    console.log("Files in root:", fs.readdirSync(__dirname));
+} catch (e) {
+    console.log("Could not read root directory:", e.message);
+}
+try {
+    console.log("Files in routers folder:", fs.existsSync(path.join(__dirname, "routers")) ? fs.readdirSync(path.join(__dirname, "routers")) : "Routers folder missing");
+} catch (e) {
+    console.log("Could not read routers directory:", e.message);
+}
 
 
 
@@ -18,7 +26,6 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const Listing = require("./models/listing");
-const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate=require("ejs-mate");
 const Router = require("./routers/listings");
