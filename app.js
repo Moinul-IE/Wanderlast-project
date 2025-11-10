@@ -1,3 +1,12 @@
+const fs = require("fs");
+const path = require("path");
+console.log("Current directory:", __dirname);
+console.log("Files in root:", fs.readdirSync(__dirname));
+console.log("Files in routers folder:", fs.existsSync(path.join(__dirname, "routers")) ? fs.readdirSync(path.join(__dirname, "routers")) : "Routers folder missing");
+
+
+
+
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config();
 }
@@ -29,10 +38,11 @@ const Adb_url = process.env.Atlas_DB;
 
 
 async function main() {
-    await mongoose.connect(Adb_url);
-    app.listen(8080, () => {
-    console.log("server is listening to port 8080");
-});
+        await mongoose.connect(Adb_url);
+        const PORT = process.env.PORT || 8080;
+        app.listen(PORT, () => {
+            console.log(`server is listening on port ${PORT}`);
+        });
     
 };
     
