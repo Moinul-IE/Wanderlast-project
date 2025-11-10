@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
+<!-- <nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
     <div class="container-fluid">
       <a class="navbar-brand" href="/"><i class="fa-sharp fa-regular fa-compass"></i></a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
@@ -10,6 +10,93 @@
           <a class="nav-link" href="/listings">All listings</a>
           <a class="nav-link" href="/listings/new">Add New Listing</a>
         </div>
+
+        add login signup style -->
+         <!-- <div class="navbar-nav ms-auto">
+          <a class="nav-link "  href="/login">Login</a>
+          <a class="nav-link" href="/logout">Logout</a>
+          <a class="nav-link" href="SignUp">Sign-Up</a>
+        </div>
+
+
       </div>
     </div>
-  </nav>
+  </nav> -->
+  <style>
+    .btn-search{
+      background: #fe424d;
+      color:white;
+      border-radius: 25px;
+      font-size: 0.95rem;
+
+    }
+
+    .btn-search:hover{
+      background: #fe424d;
+      color:white;
+      border-radius: 25px;
+    }
+
+    .btn-search i{
+       display: inline;
+       margin-right: 0.3rem;
+       
+    }
+    .search-inp{
+      border-radius: 25px;
+      padding: 0.5rem 2rem 0.5rem 2rem;
+      font-size: 0.80rem;
+    }
+  </style>
+  <nav class="navbar navbar-expand-md navbar-light bg-light border-bottom sticky-top">
+  <div class="container-fluid">
+    <!-- Brand -->
+    <a class="navbar-brand" href="/listings">
+      <i class="fa-sharp fa-regular fa-compass"></i>
+    </a>
+
+    <!-- Toggler -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+            data-bs-target="#navbarNavAltMarkup" 
+            aria-controls="navbarNavAltMarkup" 
+            aria-expanded="false" 
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navbar Items -->
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <!-- Left Side Links -->
+      <div class="navbar-nav">
+        <a class="nav-link" href="/listings">Explore</a>
+      </div>
+      <!-- search option implement -->
+
+ <nav class="navbar navbar-light bg-light ms-auto Search-nav">
+  <div class="container-fluid">
+    <form class="d-flex">
+      <input class="form-control me-2 search-inp" type="search" placeholder="Search-destination" aria-label="Search">
+      <button class="btn btn-outline-success btn-search" type="submit">
+        <i class="fa-solid fa-magnifying-glass"></i>Search</button>
+    </form>
+  </div>
+</nav>
+
+      <!-- Right Side (Auth) -->
+      <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/listings/new">Airbnb your home</a>
+
+        <% if(!currUser) { %>
+        <a class="nav-link btn btn-outline-primary px-3 me-2" href="/login"><b>Login</b></a>
+         <a class="nav-link btn btn-primary px-3" href="/signup"><b>Sign Up</b></a>
+
+       <% } %>
+
+      <% if (currUser) { %>
+       <a class="nav-link btn btn-outline-danger px-3 me-2" href="/logout"><b>Logout</b></a>
+
+      <% } %>
+      </div>
+    </div>
+  </div>
+</nav>

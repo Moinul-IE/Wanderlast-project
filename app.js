@@ -1,3 +1,10 @@
+if (process.env.NODE_ENV !== "production") {
+    require("dotenv").config();
+}
+
+console.log(process.env.SECRET);
+
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -5,24 +12,42 @@ const Listing = require("./models/listing");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate=require("ejs-mate");
+const Router = require("./routers/listings");
+const reviewRouter = require("./routers/review");
+const userRouter = require("./routers/user");
+const ExpressError = require("./utiles/ExpressError");
+const session = require("express-session");
+const MongoStore = require('connect-mongo');
+const flash = require("connect-flash");
+const passport = require("passport");
+const LocalStrategy=require("passport-local");
+const User = require("./models/user");
+const {isLoggedin} = require("./middlware");
 
-const Mongo_URL = ("mongodb://127.0.0.1:27017/wanderLust");
+// const Mongo_URL = "mongodb://127.0.0.1:27017/wanderLust";
+const Adb_url = process.env.Atlas_DB;
 
-main().then(()=>{
-    console.log("connected to DB");
-}).catch((err)=>{
-    console.log(err);
-})
+
 async function main() {
-    await mongoose.connect(Mongo_URL);
+    await mongoose.connect(Adb_url);
+    app.listen(8080, () => {
+    console.log("server is listening to port 8080");
+});
     
-}
+};
+    
+// main().then((err) => {
+//     console.log("connected to MongoDB")});
+main().catch((err)=>{
+    console.log(err);
+});
 // to take data from request body using middleware 
 
-app.use(express.urlencoded({extended : true}));
+app.use(express.urlencoded({extended : true})); 
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "/public")));
 // to use fontawesome 
+
 app.use('/css', express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/css')));
 app.use('/webfonts', express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts')));
 
@@ -31,78 +56,86 @@ app.set("view engine", "ejs") // for ejs template
 app.set("views", path.join(__dirname, "views")); // views folder finding from any where 
 app.engine("ejs", ejsMate);
 
-app.get("/", (req, res)=>{
-    res.send("i am no root")
-   console.log(" server is connected ");
+
+// session in online at Mongo Atlas: session save in also atlas by connect mongo
+const store = MongoStore.create({
+    mongoUrl:Adb_url,
+    crypto : {
+        secret: process.env.SECRET,
+    },
+    touchAfter: 24* 3600    
+});
+
+// if have error in session 
+store.on("error", (err) =>{
+    console.log("Error in Mongo Session store:", err);
+});
+
+if (!Adb_url) {
+    console.warn('[app] Warning: Atlas_DB environment variable is not set. MongoDB connection may fail.');
+}
+
+
+// session option use 
+const sessionOption = {
+    store,
+    secret: process.env.SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        httpOnly: true, // prevents client-side JavaScript from accessing the cookie cross-site scripting (XSS) attacks
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days
+        maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
+    }
+
+};
+app.use(session(sessionOption));
+app.use(flash());
+
+// always use after session 
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+
+// app.get("/", (req, res)=>{
+//     res.send("i am no root");
+//    console.log(" server is connected ");
+// });
+
+app.use((req, res, next) => {
+    res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
+    res.locals.currUser = req.user;
+    next();
 })
 
-// GET  request  /listings to show alllistings
+// demo passport using
+// app.get("/demouser", async (req, res)=>{
+//       let fakeUser = new User({
+//         email: "student1@gmail.com",
+//         username: "dalta-stu",
+//       });
 
-app.get("/listings", async (req, res)=>{
-     try {
-        const allListings =  await Listing.find({});
-        res.render("listings/index", {allListings});  // "/ " it should not to be put 
-        console.log("data was listings");
-     } catch (error) {
-        console.log(error);
-        console.log("data was not listings");
-     }
+//      let registerUser = await User.register(fakeUser, "hello");
+//      res.send(registerUser);
+// });
+
+app.use("/listings", Router);
+app.use("/listings/:id/reviews", reviewRouter)
+app.use("/", userRouter);
+
+app.all('*', (req, res, next) => {
+  next(new ExpressError(404, "Page not found"));
+});
+
+app.use((err, req, res, next) =>{
+    console.log(err);
+    const {status= 500, message ="somthing wrong"} = err;
+    res.status(status).render("listings/Error", {message});
 });
 
 
-
-app.get("/listings/new", (req, res)=>{
-    try {
-        res.render("listings/createnew");
-
-    } catch (error) {
-        console.log(error);
-    }
-});
-
-
-
-// GET REQ FOR SPECIFIC ID REQ 
-app.get("/listings/:id", async (req, res)=>{
-    let {id} = req.params;
-    const listing = await Listing.findById(id);
-    res.render("listings/show", {listing});
-});
-
-
-// create route
-app.post("/listings", async (req, res)=>{
-    const newListing = new Listing(req.body.listing);
-    try {
-        await newListing.save();
-        res.redirect("/listings");
-    } catch (error) {
-        console.log(error);
-    }
-});
-
-// edit fet route
-app.get("/listings/:id/edit", async (req, res)=>{
-    let {id} = req.params;
-    const listing = await Listing.findById(id);
-    res.render("listings/edit", { listing });
-});
-
-// now update route
-app.put("/listings/:id", async (req, res)=>{
-    let {id} = req.params;
-    await Listing.findByIdAndUpdate(id,{...req.body.listing});
-    res.redirect(`/listings/${id}`);
-});
-
- // delete route
-app.delete("/listings/:id", async (req, res)=>{
-   let {id} = req.params;
-   let deleteListings=  await Listing.findByIdAndDelete(id);
-   console.log(deleteListings);
-   res.redirect("/listings");
-})
-
-app.listen(8080, (req, res)=>{
-    console.log("server is listening to port 8080");
-});
