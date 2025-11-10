@@ -5,6 +5,7 @@ npm-debug.log*
 package-lock.json
 dist/
 /.vscode/
-uploads/.env
+uploads/
+.env
 node_modules
 **/.DS_Store
