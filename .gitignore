@@ -1,11 +1,12 @@
+cat > .gitignore <<'EOF'
+# dependencies
 node_modules/
+
+# local env files
 .env
+.env.* 
+
+# misc
 .DS_Store
 npm-debug.log*
-package-lock.json
-dist/
-/.vscode/
-uploads/
-.env
-node_modules
-**/.DS_Store
+EOF
