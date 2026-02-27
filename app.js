@@ -40,6 +40,10 @@ const LocalStrategy=require("passport-local");
 const User = require("./models/user");
 const {isLoggedin} = require("./middlware");
 
+
+const wrapAsync = require("./utiles/wrapAsync");
+const ListingController = require("./controller/listings");
+
 // const Mongo_URL = "mongodb://127.0.0.1:27017/wanderLust";
 const Adb_url = process.env.Atlas_DB;
 
@@ -140,6 +144,8 @@ app.use((req, res, next) => {
 //      let registerUser = await User.register(fakeUser, "hello");
 //      res.send(registerUser);
 // });
+
+app.get("/", wrapAsync(ListingController.index));
 
 app.use("/listings", Router);
 app.use("/listings/:id/reviews", reviewRouter)
